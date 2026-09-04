@@ -51,6 +51,7 @@ class World(ParallelEnv):
             where map3.dat will hold the map data, and map3.csv will hold the sprite data. 
     """
     env_id = "alife-v1"
+    metadata = {"name": env_id, "render_modes": ["human", "rgb_array"], "render_fps": FPS}
 
     def __init__(self, render_mode: str | None = None):
         super().__init__()
@@ -136,7 +137,7 @@ class World(ParallelEnv):
 
         ## PYGAME STUFF (burn decor into background, display)
 
-        if self.render_mode == "human":
+        if self.render_mode is not None:
             self._init_pygame(bname_map, B, decor)
 
 
@@ -275,20 +276,33 @@ class World(ParallelEnv):
             self.sprites[self.active_agents, IDX_PROXIMITY], 0, 1)
 
     def render(self):
-        if self.render_mode != "human":
-            return
+        """ Draw the current state.
+
+            Returns
+            -------
+            None if render_mode == "human" (the frame is shown in the window),
+            a (H,W,3) uint8 array if render_mode == "rgb_array".
+        """
+        if self.render_mode is None:
+            return None
 
         # Quit ?
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.close()
-                raise SystemExit
+        if self.render_mode == "human":
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.close()
+                    raise SystemExit
 
         # Draw (pass full array so FX sprites in reserved zone are included)
         self._screen.blit(self.background, [0,0])
         draw_state(self._screen, self.sprites, self.images, self.names)
+
+        if self.render_mode == "rgb_array":
+            return np.transpose(pygame.surfarray.array3d(self._screen), (1, 0, 2))
+
         pygame.display.flip()
         self._clock.tick(FPS)
+        return None
 
     def close(self):
         if self._screen is not None:
