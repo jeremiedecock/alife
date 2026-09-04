@@ -1,0 +1,53 @@
+# Build the `alife` wheel and publish it as a GitHub Release asset, so that it
+# can be installed with pip directly from this repository, e.g.:
+#
+#   pip install https://github.com/jeremiedecock/alife/releases/download/v0.1.0/alife-0.1.0-py3-none-any.whl
+#
+# The release is created from the pushed tag; remember to bump `version` in
+# pyproject.toml before tagging.
+
+name: Publish wheel
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-wheel:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build the wheel and the source distribution
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      # Keeps the distributions downloadable from the workflow run itself,
+      # which is also the only output when triggered manually (no tag).
+      - name: Upload the distributions as workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: alife-dist
+          path: dist/
+
+      - name: Attach the distributions to the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+          gh release upload "$GITHUB_REF_NAME" dist/* --clobber
