@@ -8,12 +8,12 @@ ALife was originally conceived as a game, then an artificial life simulation (he
 
 Install the latest released wheel, published as a GitHub Release asset:
 ```
-pip install https://github.com/jeremiedecock/alife/releases/download/v0.1.0/alife-0.1.0-py3-none-any.whl
+pip install https://github.com/jeremiedecock/alife/releases/download/v0.2.0/alife-0.2.0-py3-none-any.whl
 ```
 
 If the repository is private, download the asset with an authenticated client first:
 ```
-gh release download v0.1.0 -R jeremiedecock/alife -p '*.whl'
+gh release download v0.2.0 -R jeremiedecock/alife -p '*.whl'
 pip install ./alife-*.whl
 ```
 
